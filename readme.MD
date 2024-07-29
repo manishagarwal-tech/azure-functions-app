@@ -41,4 +41,17 @@ STORAGE_ACCOUNT_NAME=your_storage_account_name
 ARCHIVE_CONTAINER_NAME=your_container_name
 ```
 ### 4. Deploy to Azure
-You can deploy the function app to Azure using the Azure Functions Core Tools or using Function extesion in VS Code.
+#### Deployment Options
+You can deploy the Function App using one of the following methods:
+
+1. **Azure Functions Core Tools**  
+   Use the command-line interface to create, manage, and deploy your Function App directly from your local machine.
+
+2. **Visual Studio Code Extension**  
+   Utilize the Azure Functions extension in Visual Studio Code for a seamless development experience, allowing you to develop, test, and deploy your Function App directly from the IDE.
+
+## Python Version and ODBC Driver Requirements
+The ODBC driver version you need depends on the Python version used in your Function App environment:
+
+- **Python 3.11**: Use **ODBC Driver 18** for compatibility and data connectivity.
+- **Python 3.10 or earlier**: Use **ODBC Driver 17** for data access requirements.
