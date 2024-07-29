@@ -16,10 +16,7 @@ PASSWORD = os.getenv("DB_PASSWORD")
 STORAGE_ACCOUNT_URL = os.getenv('STORAGE_ACCOUNT_URL')
 CONTAINER_NAME = os.getenv('ARCHIVE_CONTAINER_NAME')
 STORAGE_ACCOUNT_NAME = os.getenv('STORAGE_ACCOUNT_NAME')
-# print(STORAGE_ACCOUNT_NAME)
-CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
-TENANT_ID = os.getenv("AZURE_TENANT_ID")
-CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
+
 
 driver = '{ODBC Driver 17 for SQL Server}'
 conn_str = f'Driver={driver};Server={SERVER_NAME};Database={DATABASE_NAME};Uid={USER_NAME};Pwd={PASSWORD};'
@@ -98,12 +95,12 @@ def get_data(req: func.HttpRequest) -> func.HttpResponse:
 def create_external_table(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Creating external table from parquet files.')
 
-    table_name = 'loan_timeseries'
-    location = 'loan_timeseries_final/**'
+    table_name = 're_distribute_current'
+    location = 'redistribute/current/redistribute_data.parquet/**'
 
     # Read the SQL template from the file
     try:
-        with open('sql/2_create_external_table_loan_timeseries.sql', 'r') as file:
+        with open('sql/3_create_external_table_redistribute_data.sql', 'r') as file:
             sql_template = file.read()
     except Exception as e:
         logging.error(f"An error occurred while reading the SQL template: {str(e)}")
