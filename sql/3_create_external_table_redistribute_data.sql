@@ -11,8 +11,9 @@ IF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = '{storage_ac
     )
 GO
 
-DROP EXTERNAL TABLE IF EXISTS dbo.{table_name};
-GO
+-- fix in future.
+-- DROP EXTERNAL TABLE IF EXISTS dbo.{table_name};
+-- GO
 
 CREATE EXTERNAL TABLE dbo.{table_name} (
     [FIPSCode] nvarchar(4000),

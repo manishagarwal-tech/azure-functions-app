@@ -18,7 +18,7 @@ CONTAINER_NAME = os.getenv('ARCHIVE_CONTAINER_NAME')
 STORAGE_ACCOUNT_NAME = os.getenv('STORAGE_ACCOUNT_NAME')
 
 
-driver = '{ODBC Driver 17 for SQL Server}'
+driver = '{ODBC Driver 18 for SQL Server}'
 conn_str = f'Driver={driver};Server={SERVER_NAME};Database={DATABASE_NAME};Uid={USER_NAME};Pwd={PASSWORD};'
 # print(conn_str)
 # Initialize the FunctionApp
