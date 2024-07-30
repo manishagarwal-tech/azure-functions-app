@@ -1,9 +1,15 @@
+#  Title: Serverless API endpoint using azure function app for IV-Dashboard
+#  Author: Mr. Manish Agarwal
+#  Version: v1
+#  Date: 30th July, 2024
+
 import logging
 import os
 import pyodbc
 import azure.functions as func
 from dotenv import load_dotenv
 import json
+from azure.storage.blob import BlobServiceClient
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,7 +22,7 @@ PASSWORD = os.getenv("DB_PASSWORD")
 STORAGE_ACCOUNT_URL = os.getenv('STORAGE_ACCOUNT_URL')
 CONTAINER_NAME = os.getenv('ARCHIVE_CONTAINER_NAME')
 STORAGE_ACCOUNT_NAME = os.getenv('STORAGE_ACCOUNT_NAME')
-
+SAS_TOKEN = os.getenv('SAS_TOKEN')
 
 driver = '{ODBC Driver 18 for SQL Server}'
 conn_str = f'Driver={driver};Server={SERVER_NAME};Database={DATABASE_NAME};Uid={USER_NAME};Pwd={PASSWORD};'
@@ -39,6 +45,28 @@ def execute_sql(query):
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
         raise e
+
+# read file from the ADLSGen2
+def read_sql_template(sas_token, file_name):
+    folder_path = 'sql-templates'
+    try:
+        blob_service_client = BlobServiceClient(account_url=STORAGE_ACCOUNT_URL, credential=sas_token)
+        container_client = blob_service_client.get_container_client(CONTAINER_NAME)
+        # get the blob client
+        blob_client = container_client.get_blob_client(f"{folder_path}/{file_name}")
+        
+        with open("sql/downloaded_sql_template.sql", "wb") as download_file:
+            download_file.write(blob_client.download_blob().readall())
+
+        # Read the downloaded SQL template
+        with open("sql/downloaded_sql_template.sql", "r") as file:
+            sql_template = file.read()
+            
+        return sql_template
+            
+    except Exception as ex:
+        print('Exception:', ex)
+    
 
 # function to get data by query passed by user
 @app.function_name(name="get_data_function")
@@ -95,20 +123,13 @@ def get_data(req: func.HttpRequest) -> func.HttpResponse:
 def create_external_table(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Creating external table from parquet files.')
 
-    table_name = 're_distribute_current'
+    table_name = 're_distribute_v2'
     location = 'redistribute/current/redistribute_data.parquet/**'
+    sql_template_name = '3_create_external_table_redistribute_data.sql'
 
     # Read the SQL template from the file
-    try:
-        with open('sql/3_create_external_table_redistribute_data.sql', 'r') as file:
-            sql_template = file.read()
-    except Exception as e:
-        logging.error(f"An error occurred while reading the SQL template: {str(e)}")
-        return func.HttpResponse(
-            "Internal Server Error: Unable to read SQL template",
-            status_code=500
-        )
-
+    sql_template = read_sql_template(SAS_TOKEN, sql_template_name)
+    
     # Replace placeholders with actual values
     try:
         sql_script = sql_template.format(
@@ -138,7 +159,7 @@ def create_external_table(req: func.HttpRequest) -> func.HttpResponse:
     except Exception as e:
         logging.error(f"An error occurred while creating external table: {str(e)}")
         return func.HttpResponse(
-            "Internal Server Error",
+            f"An error occurred while creating external table: {str(e)}",
             status_code=500
         )
 
